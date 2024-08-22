@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 5s
+  external_labels:
+    role: "sender-v2"
+
+remote_write:
+  - url: "http://prometheus-receiver:9090/api/v1/write"
+    name: "receiver"
+    metadata_config:
+      send: false
+    queue_config:
+      max_samples_per_send: 5000
+
+scrape_configs:
+  - job_name: "avalanche"
+    static_configs:
+      - targets: ["docker.for.mac.localhost:9001"]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'avalanche_.+'
+        action: keep

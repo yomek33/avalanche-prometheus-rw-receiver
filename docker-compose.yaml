@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  prometheus-receiver:
+    image: prom/prometheus:latest
+    container_name: prometheus_receiver
+    volumes:
+      - ./prometheus/receiver.yml:/etc/prometheus/prometheus.yml
+      - prometheus_receiver_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+    ports:
+      - "9090:9090"
+
+  prometheus-sender-master:
+    image: prominfra/prometheus-builder:master
+    platform: linux/amd64
+    container_name: prometheus_sender_master
+    volumes:
+      - ./prometheus/sender-master.yml:/etc/prometheus/prometheus.yml
+      - prometheus_sender_master_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9091:9091"
+  
+  prometheus-sender-pr:
+    image: prominfra/prometheus-builder:${PR_NUMBER}
+    platform: linux/amd64
+    container_name: prometheus_sender_${PR_NUMBER}
+    volumes:
+      - ./prometheus/sender-pr.yml:/etc/prometheus/prometheus.yml
+      - prometheus_sender_pr_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9092:9092"
+    environment:
+      - PR_NUMBER=${PR_NUMBER}
+
+  avalanche:
+    build:
+      context: /Users/moekamishima/oss/lfx/avalanche
+      dockerfile: env/Dockerfile
+    container_name: prometheus_avalanche
+    ports:
+      - "9001:9001"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+volumes:
+  prometheus_receiver_data:
+  prometheus_sender_master_data:
+  prometheus_sender_pr_data:
