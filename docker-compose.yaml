@@ -14,8 +14,7 @@ services:
       - "9090:9090"
 
   prometheus-sender-master:
-    image: prominfra/prometheus-builder:master
-    platform: linux/amd64
+    image: prom/prometheus:latest
     container_name: prometheus_sender_master
     volumes:
       - ./prometheus/sender-master.yml:/etc/prometheus/prometheus.yml
@@ -24,10 +23,11 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
     ports:
       - "9091:9091"
+    environment:
+      - PR_NUMBER=${PR_NUMBER}
   
   prometheus-sender-pr:
-    image: prominfra/prometheus-builder:${PR_NUMBER}
-    platform: linux/amd64
+    image: prom/prometheus:latest
     container_name: prometheus_sender_${PR_NUMBER}
     volumes:
       - ./prometheus/sender-pr.yml:/etc/prometheus/prometheus.yml
